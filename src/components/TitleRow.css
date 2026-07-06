@@ -26,6 +26,11 @@
 
 .title-row__item {
   flex: 0 0 160px;
+  /* without this, a poster whose natural pixel size is unusually large can
+     inflate this flex item's automatic minimum size past its 160px basis -
+     min-width: 0 forces every card to the same width regardless of the
+     underlying image's own dimensions. */
+  min-width: 0;
   scroll-snap-align: start;
 }
 
