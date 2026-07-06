@@ -3,10 +3,10 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, MotionConfig } from 'framer-motion';
 import { useAuth } from './hooks/useAuth';
 import { useConnectivity } from './hooks/useConnectivity';
-import { startConnectivitySimulation, stopConnectivitySimulation } from './store/connectivityStore';
 import { runInitialSync, registerReconnectSync } from './lib/syncEngine';
 import { NavBar } from './components/NavBar';
 import { ConnectivityBanner } from './components/ConnectivityBanner';
+import { ConnectivityToast } from './components/ConnectivityToast';
 import { SyncProgress } from './components/SyncProgress';
 import { PageTransition } from './components/PageTransition';
 import { Spinner } from './components/ui/Spinner';
@@ -24,14 +24,11 @@ export default function App() {
   const [selectedTitle, setSelectedTitle] = useState(null);
 
   useEffect(() => {
-    startConnectivitySimulation();
-
     const controller = new AbortController();
     runInitialSync(setSyncProgress, controller.signal);
     const unregister = registerReconnectSync(setSyncProgress);
 
     return () => {
-      stopConnectivitySimulation();
       controller.abort();
       unregister();
     };
@@ -51,6 +48,7 @@ export default function App() {
   return (
     <MotionConfig reducedMotion="user">
       <ConnectivityBanner />
+      <ConnectivityToast />
       {isAuthenticated && (
         <>
           <NavBar email={user.email} />
@@ -81,6 +79,7 @@ export default function App() {
                     onSelectTitle={handleSelectTitle}
                     selectedTitle={selectedTitle}
                     onCloseModal={handleCloseModal}
+                    syncedCount={syncProgress.cached}
                   />
                 </PageTransition>
               ) : (

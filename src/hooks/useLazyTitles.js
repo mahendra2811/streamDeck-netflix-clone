@@ -28,7 +28,13 @@ import { getTitlesPage } from '../lib/db';
 
 const PAGE_SIZE = 40;
 
-export function useLazyTitles() {
+// syncedCount lets the grid tell "genuinely reached the end of the whole
+// catalogue" apart from "reached the end of what's cached *so far*" - the
+// initial sync runs in the background for a while after Home first mounts,
+// so without this the grid could hit an empty/short page early and mark
+// itself exhausted forever, permanently freezing before most of the
+// catalogue has even been cached.
+export function useLazyTitles(syncedCount = 0) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [exhausted, setExhausted] = useState(false);
@@ -74,6 +80,15 @@ export function useLazyTitles() {
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Un-stick: if we previously ran dry but the sync has since cached more
+  // titles than we've fetched, drop the exhausted flag so the sentinel
+  // reappears and loadMore resumes from exactly where it left off.
+  useEffect(() => {
+    if (exhausted && offsetRef.current < syncedCount) {
+      setExhausted(false);
+    }
+  }, [syncedCount, exhausted]);
 
   return { items, loading, exhausted, loadMore };
 }

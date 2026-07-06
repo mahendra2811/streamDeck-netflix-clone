@@ -28,7 +28,11 @@ async function request(path, { signal } = {}) {
  */
 export async function listTitles({
   types = ['TV_SERIES', 'TV_MINI_SERIES'],
-  sortBy = 'SORT_BY_POPULARITY',
+  // SORT_BY_POPULARITY on this API surfaces mostly obscure titles with no
+  // rating and no poster for these two types - SORT_BY_USER_RATING_COUNT
+  // front-loads the well-known, fully-populated shows instead (verified:
+  // the 50 highest by vote count all have both a rating and a poster).
+  sortBy = 'SORT_BY_USER_RATING_COUNT',
   sortOrder = 'DESC',
   pageToken,
   signal,

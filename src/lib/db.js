@@ -123,10 +123,18 @@ export async function getRecentlyAdded(limit = 20) {
 
 // Cursor-based paged read straight from IndexedDB, used by the lazy-loading
 // grid so we never hold all 10k objects in React state at once.
+//
+// Walks by_cachedAt ascending (sync/insertion order) rather than the
+// primary key (title id, which sorts arbitrarily by IMDb id and has nothing
+// to do with how complete a title's data is). Since the sync fetches by
+// descending vote count, insertion order already puts the richly-populated,
+// recognizable titles first - so the grid shows real posters from the top
+// and only trails off into sparser, less-documented titles further down.
 export async function getTitlesPage({ offset = 0, limit = 40 } = {}) {
   const db = await getDB();
   const tx = db.transaction('titles');
-  let cursor = await tx.store.openCursor();
+  const index = tx.store.index('by_cachedAt');
+  let cursor = await index.openCursor();
   if (offset > 0 && cursor) {
     cursor = await cursor.advance(offset);
   }

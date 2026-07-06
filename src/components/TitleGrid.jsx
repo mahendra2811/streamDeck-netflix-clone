@@ -5,20 +5,20 @@
 // TitleCards for that range, absolutely positioned. DOM node count stays
 // bounded no matter how far into the 10k-item catalogue the user scrolls.
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useLazyTitles, useInfiniteScrollSentinel } from '../hooks/useLazyTitles';
-import { TitleCard } from './TitleCard';
-import { EmptyState } from './ui/EmptyState';
-import { Spinner } from './ui/Spinner';
-import './TitleGrid.css';
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useLazyTitles, useInfiniteScrollSentinel } from "../hooks/useLazyTitles";
+import { TitleCard } from "./TitleCard";
+import { EmptyState } from "./ui/EmptyState";
+import { Spinner } from "./ui/Spinner";
+import "./TitleGrid.css";
 
 const CARD_WIDTH = 160;
 const CARD_HEIGHT = 300;
 const GAP = 16;
 const OVERSCAN_ROWS = 2;
-
-export function TitleGrid({ onSelectTitle }) {
-  const { items, loading, exhausted, loadMore } = useLazyTitles();
+s
+export function TitleGrid({ onSelectTitle, syncedCount }) {
+  const { items, loading, exhausted, loadMore } = useLazyTitles(syncedCount);
   const containerRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const [visibleRange, setVisibleRange] = useState({ startRow: 0, endRow: 0 });
@@ -59,12 +59,12 @@ export function TitleGrid({ onSelectTitle }) {
     };
 
     recompute();
-    window.addEventListener('scroll', onScrollOrResize, { passive: true });
-    window.addEventListener('resize', onScrollOrResize);
+    window.addEventListener("scroll", onScrollOrResize, { passive: true });
+    window.addEventListener("resize", onScrollOrResize);
     return () => {
       if (rafId) cancelAnimationFrame(rafId);
-      window.removeEventListener('scroll', onScrollOrResize);
-      window.removeEventListener('resize', onScrollOrResize);
+      window.removeEventListener("scroll", onScrollOrResize);
+      window.removeEventListener("resize", onScrollOrResize);
     };
   }, [rowHeight]);
 
@@ -91,7 +91,7 @@ export function TitleGrid({ onSelectTitle }) {
                 className="title-grid__cell"
                 style={{ top: row * rowHeight, left: col * (CARD_WIDTH + GAP), width: CARD_WIDTH }}
               >
-                <TitleCard title={title} onSelect={handleSelect} />
+                <TitleCard title={title} onSelect={handleSelect} priority={row === 0} />
               </div>
             );
           })}

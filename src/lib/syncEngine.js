@@ -25,11 +25,16 @@ import { onReconnect, getIsOnline } from '../store/connectivityStore';
 import { searchIndex } from './searchIndex';
 
 export const TARGET_COUNT = 10000;
-const PAGE_TOKEN_KEY = 'sync.pageToken';
-const DONE_KEY = 'sync.initialSyncDone';
+// v2: bumped because the sort order changed (popularity -> user rating
+// count, see imdbApi.js) - a cursor persisted under the old sort is
+// meaningless under the new one, so old sessions just start over cleanly
+// instead of resuming into wrong results.
+const PAGE_TOKEN_KEY = 'sync.pageToken.v2';
+const DONE_KEY = 'sync.initialSyncDone.v2';
 
 const MAX_RETRIES = 3;
 const BACKOFF_BASE_MS = 1000;
+const PAGE_DELAY_MS = 200; // small gap between pages - the API rate-limits back-to-back requests
 
 // Retries a single page fetch with exponential backoff (1s, 2s, 4s) before
 // giving up on this run - a flaky request shouldn't stall the whole sync,
@@ -86,6 +91,8 @@ export async function runInitialSync(onProgress, signal) {
 
     if (!page.nextPageToken) break; // no more pages available
     pageToken = page.nextPageToken;
+
+    await new Promise((resolve) => setTimeout(resolve, PAGE_DELAY_MS));
   }
 
   if (cached >= TARGET_COUNT) {

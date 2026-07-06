@@ -8,14 +8,14 @@ import { PosterImage } from './PosterImage';
 import { Badge } from './ui/Badge';
 import './TitleCard.css';
 
-function TitleCardImpl({ title, onSelect }) {
+function TitleCardImpl({ title, onSelect, priority = false }) {
   const year = title.startYear ?? '—';
   const rating = title.rating?.aggregateRating;
 
   return (
     <button className="title-card" onClick={() => onSelect(title)} title={title.primaryTitle}>
       <div className="title-card__poster-wrap">
-        <PosterImage src={title.primaryImage?.url} alt={title.primaryTitle} />
+        <PosterImage src={title.primaryImage?.url} alt={title.primaryTitle} priority={priority} />
         {rating != null && (
           <Badge tone="neutral" className="title-card__rating">
             {rating.toFixed(1)}★
@@ -31,7 +31,7 @@ function TitleCardImpl({ title, onSelect }) {
 }
 
 function areEqual(prev, next) {
-  return prev.title === next.title && prev.onSelect === next.onSelect;
+  return prev.title === next.title && prev.onSelect === next.onSelect && prev.priority === next.priority;
 }
 
 export const TitleCard = memo(TitleCardImpl, areEqual);

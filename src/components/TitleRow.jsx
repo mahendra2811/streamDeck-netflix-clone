@@ -17,9 +17,9 @@ export function TitleRow({ heading, items, onSelectTitle }) {
           ‹
         </button>
         <div className="title-row__scroller" ref={scrollerRef}>
-          {items.map((title) => (
+          {items.map((title, i) => (
             <div className="title-row__item" key={title.id}>
-              <TitleCard title={title} onSelect={onSelectTitle} />
+              <TitleCard title={title} onSelect={onSelectTitle} priority={i < 6} />
             </div>
           ))}
         </div>

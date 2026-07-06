@@ -1,0 +1,35 @@
+.connectivity-toast-region {
+  position: fixed;
+  bottom: var(--space-5);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-banner);
+  pointer-events: none;
+}
+
+.connectivity-toast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--color-elevated);
+  box-shadow: var(--shadow-elevated);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.connectivity-toast__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.connectivity-toast--online .connectivity-toast__dot {
+  background: var(--color-online);
+}
+
+.connectivity-toast--offline .connectivity-toast__dot {
+  background: var(--color-offline);
+}
