@@ -1,0 +1,19 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.badge--accent {
+  background: var(--color-accent);
+  color: var(--color-text);
+}
+
+.badge--neutral {
+  background: var(--color-elevated);
+  color: var(--color-text-secondary);
+}

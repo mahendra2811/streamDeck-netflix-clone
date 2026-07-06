@@ -1,0 +1,48 @@
+.poster {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  background: var(--color-elevated);
+}
+
+.poster__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 200ms var(--ease-out);
+}
+
+.poster__shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, var(--color-elevated) 30%, #262631 50%, var(--color-elevated) 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.poster--fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  font-size: 32px;
+  font-weight: 700;
+  background: linear-gradient(160deg, var(--color-elevated), var(--color-surface));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .poster__shimmer {
+    animation: none;
+  }
+}

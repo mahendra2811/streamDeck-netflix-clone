@@ -1,0 +1,61 @@
+.hero {
+  position: relative;
+  height: 56vh;
+  min-height: 380px;
+  background-size: cover;
+  background-position: center 20%;
+  display: flex;
+  align-items: flex-end;
+}
+
+.hero__scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(11, 11, 15, 0.2) 0%, rgba(11, 11, 15, 0.75) 70%, var(--color-bg) 100%),
+    linear-gradient(90deg, rgba(11, 11, 15, 0.85) 0%, rgba(11, 11, 15, 0.2) 55%);
+}
+
+.hero__content {
+  position: relative;
+  z-index: 1;
+  max-width: 560px;
+  padding: 0 var(--space-5) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.hero__eyebrow {
+  color: var(--color-accent);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.hero__title {
+  font-size: 40px;
+  line-height: 1.1;
+}
+
+.hero__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.hero__plot {
+  color: var(--color-text-secondary);
+  font-size: 15px;
+  line-height: 1.5;
+  max-width: 46ch;
+}
+
+.hero__actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}

@@ -1,0 +1,27 @@
+.sync-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-5);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.sync-progress__track {
+  flex: 1;
+  max-width: 240px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-elevated);
+  overflow: hidden;
+}
+
+.sync-progress__fill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: var(--radius-pill);
+}
+
+.sync-progress__label {
+  white-space: nowrap;
+}

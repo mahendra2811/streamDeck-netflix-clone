@@ -1,0 +1,18 @@
+.title-grid-wrapper {
+  padding: 0 var(--space-5) var(--space-6);
+}
+
+.title-grid {
+  position: relative;
+  width: 100%;
+}
+
+.title-grid__cell {
+  position: absolute;
+}
+
+.title-grid__sentinel {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-4);
+}

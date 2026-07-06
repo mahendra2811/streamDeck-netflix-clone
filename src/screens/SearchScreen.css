@@ -1,0 +1,28 @@
+.search-screen {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-5);
+}
+
+.search-screen__hint {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  margin-top: var(--space-2);
+}
+
+.search-screen__results {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 160px);
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.search-screen__result {
+  border-radius: var(--radius-card);
+  outline: 2px solid transparent;
+  transition: outline-color 150ms var(--ease-out);
+}
+
+.search-screen__result--active {
+  outline-color: var(--color-accent);
+}

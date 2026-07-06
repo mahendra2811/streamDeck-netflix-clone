@@ -1,0 +1,20 @@
+.connectivity-banner {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-banner);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.connectivity-banner__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}

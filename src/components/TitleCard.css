@@ -1,0 +1,51 @@
+.title-card {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  color: var(--color-text);
+  transition: transform 150ms var(--ease-out);
+}
+
+.title-card:hover {
+  transform: scale(1.04);
+}
+
+.title-card:hover .title-card__poster-wrap {
+  box-shadow: var(--shadow-lift);
+}
+
+.title-card__poster-wrap {
+  position: relative;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 150ms var(--ease-out);
+}
+
+.title-card__rating {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+}
+
+.title-card__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) 2px 0;
+  font-size: 13px;
+}
+
+.title-card__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.title-card__year {
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
