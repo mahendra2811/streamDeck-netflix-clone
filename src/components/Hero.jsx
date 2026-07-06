@@ -1,7 +1,10 @@
 import { motion } from 'framer-motion';
-import { addToWatchlist, recordWatch } from '../lib/db';
+import { recordWatch } from '../lib/db';
+import { useWatchlistToggle } from '../hooks/useWatchlistToggle';
+import { usePlayAction } from '../hooks/usePlayAction';
 import { Button } from './ui/Button';
 import { Badge } from './ui/Badge';
+import { Spinner } from './ui/Spinner';
 import './Hero.css';
 
 const fadeUp = {
@@ -11,11 +14,11 @@ const fadeUp = {
 
 export function Hero({ title, onSelect }) {
   const rating = title.rating?.aggregateRating;
-
-  const handlePlay = () => {
+  const { inWatchlist, toggle: toggleWatchlist } = useWatchlistToggle(title.id);
+  const { isLoading: playLoading, play } = usePlayAction(() => {
     recordWatch(title.id);
     onSelect(title);
-  };
+  });
 
   return (
     <div className="hero" style={{ backgroundImage: `url(${title.primaryImage?.url ?? ''})` }}>
@@ -42,11 +45,11 @@ export function Hero({ title, onSelect }) {
           </motion.p>
         )}
         <motion.div className="hero__actions" variants={fadeUp}>
-          <Button size="lg" onClick={handlePlay}>
-            ▶ Play
+          <Button size="lg" onClick={play} disabled={playLoading}>
+            {playLoading ? <Spinner size={16} /> : '▶ Play'}
           </Button>
-          <Button size="lg" variant="secondary" onClick={() => addToWatchlist(title.id)}>
-            + Watchlist
+          <Button size="lg" variant="secondary" active={inWatchlist} onClick={toggleWatchlist}>
+            {inWatchlist ? '✓ Added' : '+ Watchlist'}
           </Button>
         </motion.div>
       </motion.div>

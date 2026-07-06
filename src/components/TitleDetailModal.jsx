@@ -2,8 +2,11 @@ import { useEffect, useState } from 'react';
 import { Modal } from './ui/Modal';
 import { Badge } from './ui/Badge';
 import { Button } from './ui/Button';
+import { Spinner } from './ui/Spinner';
 import { PosterImage } from './PosterImage';
-import { addToWatchlist, recordWatch } from '../lib/db';
+import { recordWatch } from '../lib/db';
+import { useWatchlistToggle } from '../hooks/useWatchlistToggle';
+import { usePlayAction } from '../hooks/usePlayAction';
 import './TitleDetailModal.css';
 
 export function TitleDetailModal({ title, onClose }) {
@@ -13,6 +16,11 @@ export function TitleDetailModal({ title, onClose }) {
   useEffect(() => {
     if (title) setDisplayTitle(title);
   }, [title]);
+
+  const { inWatchlist, toggle: toggleWatchlist } = useWatchlistToggle(displayTitle?.id);
+  const { isLoading: playLoading, play } = usePlayAction(() => {
+    if (displayTitle) recordWatch(displayTitle.id);
+  });
 
   if (!displayTitle) return null;
 
@@ -37,9 +45,11 @@ export function TitleDetailModal({ title, onClose }) {
           </div>
           {displayTitle.plot && <p className="title-detail__plot">{displayTitle.plot}</p>}
           <div className="title-detail__actions">
-            <Button onClick={() => recordWatch(displayTitle.id)}>▶ Play</Button>
-            <Button variant="secondary" onClick={() => addToWatchlist(displayTitle.id)}>
-              + Watchlist
+            <Button onClick={play} disabled={playLoading}>
+              {playLoading ? <Spinner size={16} /> : '▶ Play'}
+            </Button>
+            <Button variant="secondary" active={inWatchlist} onClick={toggleWatchlist}>
+              {inWatchlist ? '✓ Added' : '+ Watchlist'}
             </Button>
             <Button variant="ghost" onClick={onClose}>
               Close

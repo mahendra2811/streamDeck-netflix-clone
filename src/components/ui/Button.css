@@ -61,3 +61,12 @@
   color: var(--color-text);
   background: rgba(255, 255, 255, 0.06);
 }
+
+.btn--active {
+  color: var(--color-online);
+  box-shadow: inset 0 0 0 1px var(--color-online);
+}
+
+.btn--active:hover:not(:disabled) {
+  background: var(--color-elevated);
+}

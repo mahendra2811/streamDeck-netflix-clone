@@ -177,6 +177,12 @@ export async function getWatchlist() {
   return db.getAll('watchlist');
 }
 
+export async function isInWatchlist(titleId) {
+  const db = await getDB();
+  const row = await db.get('watchlist', titleId);
+  return Boolean(row);
+}
+
 export async function recordWatch(titleId) {
   const db = await getDB();
   await db.put('watchHistory', { id: titleId, watchedAt: Date.now() });
