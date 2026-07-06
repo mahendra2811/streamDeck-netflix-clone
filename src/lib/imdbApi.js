@@ -14,8 +14,20 @@ const BASE_URL = 'https://api.imdbapi.dev';
 async function request(path, { signal } = {}) {
   const res = await fetch(`${BASE_URL}${path}`, { signal });
   if (!res.ok) {
-    const err = new Error(`IMDbAPI ${res.status}: ${res.statusText}`);
+    // This API wraps rate-limit responses as an HTTP 500 with the real
+    // "429: too many network requests" reason buried in the JSON body, not
+    // the status code - read the body so callers can tell "rate limited,
+    // back off harder" apart from a genuine server error.
+    let detail = res.statusText;
+    try {
+      const body = await res.json();
+      if (body?.message) detail = body.message;
+    } catch {
+      // body wasn't JSON - fall back to statusText
+    }
+    const err = new Error(`IMDbAPI ${res.status}: ${detail}`);
     err.status = res.status;
+    err.isRateLimited = res.status === 429 || /too many (network )?requests|status 429/i.test(detail);
     throw err;
   }
   return res.json();

@@ -34,11 +34,13 @@ const DONE_KEY = 'sync.initialSyncDone.v2';
 
 const MAX_RETRIES = 3;
 const BACKOFF_BASE_MS = 1000;
-const PAGE_DELAY_MS = 200; // small gap between pages - the API rate-limits back-to-back requests
+const RATE_LIMIT_BACKOFF_MS = 8000; // this API's 429s need real seconds to clear, not a quick retry
+const PAGE_DELAY_MS = 300; // small gap between pages - the API rate-limits back-to-back requests
 
-// Retries a single page fetch with exponential backoff (1s, 2s, 4s) before
-// giving up on this run - a flaky request shouldn't stall the whole sync,
-// but we also don't want to hammer the API in a tight loop.
+// Retries a single page fetch with backoff before giving up on this run - a
+// flaky request shouldn't stall the whole sync, but we also don't want to
+// hammer the API in a tight loop. Rate-limit errors get a much longer wait
+// than generic ones, since retrying after 1-2s just hits the same limit again.
 async function fetchPageWithBackoff(pageToken, signal) {
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     if (signal?.aborted || !getIsOnline()) return null;
@@ -50,54 +52,83 @@ async function fetchPageWithBackoff(pageToken, signal) {
         console.warn('[syncEngine] page fetch failed after retries, will resume later:', err.message);
         return null;
       }
-      await new Promise((resolve) => setTimeout(resolve, BACKOFF_BASE_MS * 2 ** attempt));
+      const delay = err.isRateLimited ? RATE_LIMIT_BACKOFF_MS * (attempt + 1) : BACKOFF_BASE_MS * 2 ** attempt;
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
   return null;
 }
 
+// Guards against two runInitialSync loops racing each other - the periodic
+// resume timer (see registerPeriodicResume below) can otherwise overlap with
+// a run that's still working through its own backoff/retry delay.
+let syncInFlight = false;
+
 /**
  * Runs the bulk initial sync. Safe to call multiple times (idempotent) -
- * it no-ops once TARGET_COUNT is reached and DONE_KEY is set.
+ * it no-ops once TARGET_COUNT is reached and DONE_KEY is set, and it's a
+ * no-op while another call is already in flight.
  *
  * @param {(progress: {cached: number, target: number}) => void} onProgress
  * @param {AbortSignal} signal - abort if e.g. the app unmounts or goes offline mid-sync
  */
 export async function runInitialSync(onProgress, signal) {
-  const alreadyDone = await getMeta(DONE_KEY);
-  let cached = await getTitleCount();
-  onProgress?.({ cached, target: TARGET_COUNT });
+  if (syncInFlight) return;
+  syncInFlight = true;
 
-  if (alreadyDone && cached >= TARGET_COUNT) return;
-
-  let pageToken = await getMeta(PAGE_TOKEN_KEY);
-
-  while (cached < TARGET_COUNT) {
-    if (signal?.aborted) return;         // component unmounted / went offline
-    if (!getIsOnline()) return;          // stop cleanly, resume later on reconnect
-
-    const page = await fetchPageWithBackoff(pageToken, signal);
-    if (!page) return; // aborted, went offline mid-backoff, or exhausted retries
-
-    if (page.titles.length === 0) break; // exhausted the API's dataset
-
-    await putTitles(page.titles);
-    // Feed straight into the live search index too, so newly-synced titles
-    // are searchable immediately without waiting for a full index rebuild.
-    searchIndex.addTitles(page.titles);
-    cached += page.titles.length;
-    await setMeta(PAGE_TOKEN_KEY, page.nextPageToken);
+  try {
+    const alreadyDone = await getMeta(DONE_KEY);
+    let cached = await getTitleCount();
     onProgress?.({ cached, target: TARGET_COUNT });
 
-    if (!page.nextPageToken) break; // no more pages available
-    pageToken = page.nextPageToken;
+    if (alreadyDone && cached >= TARGET_COUNT) return;
 
-    await new Promise((resolve) => setTimeout(resolve, PAGE_DELAY_MS));
-  }
+    let pageToken = await getMeta(PAGE_TOKEN_KEY);
 
-  if (cached >= TARGET_COUNT) {
-    await setMeta(DONE_KEY, true);
+    while (cached < TARGET_COUNT) {
+      if (signal?.aborted) return;         // component unmounted / went offline
+      if (!getIsOnline()) return;          // stop cleanly, resume later on reconnect
+
+      const page = await fetchPageWithBackoff(pageToken, signal);
+      if (!page) return; // aborted, went offline mid-backoff, or exhausted retries - periodic resume picks this up
+
+      if (page.titles.length === 0) break; // exhausted the API's dataset
+
+      await putTitles(page.titles);
+      // Feed straight into the live search index too, so newly-synced titles
+      // are searchable immediately without waiting for a full index rebuild.
+      searchIndex.addTitles(page.titles);
+      cached += page.titles.length;
+      await setMeta(PAGE_TOKEN_KEY, page.nextPageToken);
+      onProgress?.({ cached, target: TARGET_COUNT });
+
+      if (!page.nextPageToken) break; // no more pages available
+      pageToken = page.nextPageToken;
+
+      await new Promise((resolve) => setTimeout(resolve, PAGE_DELAY_MS));
+    }
+
+    if (cached >= TARGET_COUNT) {
+      await setMeta(DONE_KEY, true);
+    }
+  } finally {
+    syncInFlight = false;
   }
+}
+
+/**
+ * A rate-limit isn't a connectivity change, so it never fires the
+ * onReconnect resume - without this, a sync that gives up mid-run because
+ * the API rate-limited it would just stay stuck forever while the user
+ * still shows as "online." Nudges runInitialSync periodically as a
+ * self-heal; each call is a no-op once the target is reached or another
+ * run is already in flight, so this is safe to leave running.
+ */
+export function registerPeriodicResume(onProgress, { intervalMs = 45000 } = {}) {
+  const timer = setInterval(() => {
+    runInitialSync(onProgress);
+  }, intervalMs);
+  return () => clearInterval(timer);
 }
 
 /**

@@ -3,7 +3,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, MotionConfig } from 'framer-motion';
 import { useAuth } from './hooks/useAuth';
 import { useConnectivity } from './hooks/useConnectivity';
-import { runInitialSync, registerReconnectSync } from './lib/syncEngine';
+import { runInitialSync, registerReconnectSync, registerPeriodicResume } from './lib/syncEngine';
 import { NavBar } from './components/NavBar';
 import { ConnectivityBanner } from './components/ConnectivityBanner';
 import { ConnectivityToast } from './components/ConnectivityToast';
@@ -26,11 +26,13 @@ export default function App() {
   useEffect(() => {
     const controller = new AbortController();
     runInitialSync(setSyncProgress, controller.signal);
-    const unregister = registerReconnectSync(setSyncProgress);
+    const unregisterReconnect = registerReconnectSync(setSyncProgress);
+    const unregisterPeriodic = registerPeriodicResume(setSyncProgress);
 
     return () => {
       controller.abort();
-      unregister();
+      unregisterReconnect();
+      unregisterPeriodic();
     };
   }, []);
 
